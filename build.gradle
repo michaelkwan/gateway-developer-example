@@ -4,26 +4,42 @@
  * of the MIT license.  See the LICENSE file for details.
  */
 
-plugins {
-    id "com.ca.apim.gateway.gateway-developer-plugin" version "0.5.00"
-    id "com.ca.apim.gateway.gateway-export-plugin" version "0.5.00"
-}
-
-group 'com.ca.apim.gateway'
-version '0.5.00'
-
-
-GatewayConnection {
-    url = 'https://localhost:8443/restman'
-    folderPath = '/gateway-solution'
-}
-
-repositories {
-    flatDir {
-        dirs "lib"
+buildscript {
+    repositories {
+        mavenLocal()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        // "+" will always pull the latest available
+        classpath "com.ca.apim.gateway:gateway-developer-plugin:0.8.+"
+        classpath "com.ca.apim.gateway:gateway-export-plugin:0.8.+"
+        classpath "com.ca.apim.gateway:gateway-import-plugin:0.8.+"
     }
 }
 
-dependencies {
-    bundle group: 'my-bundle', name: 'my-bundle', version: '1.0.00', ext: 'bundle'
+subprojects {
+    apply plugin: 'com.ca.apim.gateway.gateway-developer-plugin'
+    if (!project.name.equals('deployment')) {
+        apply plugin: 'com.ca.apim.gateway.gateway-export-plugin'
+        GatewayConnection {
+            url = 'https://localhost:8443/restman'
+        }
+    } 
+
+    group 'com.ca.apim.gateway'
+    version = '0.8.0'
+
+    repositories {
+        mavenLocal()
+        flatDir {
+            dirs new File(project.parent.rootDir, "lib")
+        }
+        jcenter()
+    }
+}
+
+wrapper {
+    gradleVersion = '4.10'
 }
